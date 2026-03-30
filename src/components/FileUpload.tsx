@@ -20,7 +20,7 @@ export default function FileUpload({ onFiles, disabled }: Props) {
   return (
     <div
       className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors
-        ${dragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50'}
+        ${dragging ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-blue-500 dark:hover:bg-blue-900/20'}
         ${disabled ? 'opacity-50 pointer-events-none' : ''}
       `}
       onClick={() => inputRef.current?.click()}
@@ -40,10 +40,10 @@ export default function FileUpload({ onFiles, disabled }: Props) {
         onChange={(e) => handleFiles(e.target.files)}
       />
       <div className="text-4xl mb-3">📂</div>
-      <p className="text-lg font-semibold text-gray-700">
+      <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">
         Drop a Roca CSV file here or click to browse
       </p>
-      <p className="text-sm text-gray-500 mt-1">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
         Add one file per physical stack, then click Run
       </p>
     </div>

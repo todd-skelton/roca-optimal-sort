@@ -60,12 +60,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Roca Optimal Sort</h1>
-            <p className="text-sm text-gray-500">Second-pass global sort planner</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Roca Optimal Sort</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Second-pass global sort planner</p>
           </div>
         </div>
       </header>
@@ -74,16 +74,16 @@ export default function App() {
         <FileUpload onFiles={handleNewFiles} disabled={loading} />
 
         {loading && (
-          <div className="mt-4 text-center text-gray-600 animate-pulse">
+          <div className="mt-4 text-center text-gray-600 dark:text-gray-300 animate-pulse">
             Parsing files…
           </div>
         )}
 
         {errors.length > 0 && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-300 rounded-lg">
-            <p className="font-semibold text-red-800 mb-1">Errors:</p>
+          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg">
+            <p className="font-semibold text-red-800 dark:text-red-300 mb-1">Errors:</p>
             {errors.map((e, i) => (
-              <p key={i} className="text-sm text-red-700">{e}</p>
+              <p key={i} className="text-sm text-red-700 dark:text-red-400">{e}</p>
             ))}
           </div>
         )}
@@ -91,7 +91,7 @@ export default function App() {
         <FileList files={files} onRemove={handleRemove} />
 
         {files.length === 1 && (
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+          <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
             Add at least one more file to generate second-pass instructions.
           </div>
         )}
@@ -107,7 +107,7 @@ export default function App() {
             </button>
             <button
               onClick={handleClear}
-              className="px-6 py-2 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
+              className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
             >
               Clear
             </button>
@@ -118,7 +118,7 @@ export default function App() {
           <div className="mt-6">
             <button
               onClick={handleClear}
-              className="px-6 py-2 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-colors"
+              className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
             >
               Clear
             </button>

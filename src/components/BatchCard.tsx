@@ -6,14 +6,14 @@ interface Props {
 }
 
 const COLORS = [
-  'bg-orange-100 border-orange-300 text-orange-900',
-  'bg-green-100 border-green-300 text-green-900',
-  'bg-purple-100 border-purple-300 text-purple-900',
-  'bg-pink-100 border-pink-300 text-pink-900',
-  'bg-yellow-100 border-yellow-300 text-yellow-900',
-  'bg-teal-100 border-teal-300 text-teal-900',
-  'bg-red-100 border-red-300 text-red-900',
-  'bg-indigo-100 border-indigo-300 text-indigo-900',
+  'bg-orange-100 border-orange-300 text-orange-900 dark:bg-orange-900/30 dark:border-orange-700 dark:text-orange-100',
+  'bg-green-100 border-green-300 text-green-900 dark:bg-green-900/30 dark:border-green-700 dark:text-green-100',
+  'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100',
+  'bg-pink-100 border-pink-300 text-pink-900 dark:bg-pink-900/30 dark:border-pink-700 dark:text-pink-100',
+  'bg-yellow-100 border-yellow-300 text-yellow-900 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-100',
+  'bg-teal-100 border-teal-300 text-teal-900 dark:bg-teal-900/30 dark:border-teal-700 dark:text-teal-100',
+  'bg-red-100 border-red-300 text-red-900 dark:bg-red-900/30 dark:border-red-700 dark:text-red-100',
+  'bg-indigo-100 border-indigo-300 text-indigo-900 dark:bg-indigo-900/30 dark:border-indigo-700 dark:text-indigo-100',
 ]
 
 function variance(actual: number, target: number): string {
@@ -48,13 +48,13 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
         <div className="text-right">
           <div className="text-2xl font-bold">{batch.totalCards.toLocaleString()}</div>
           <div className="text-sm opacity-75">
-            cards {v && <span className={v.startsWith('+') ? 'text-orange-600' : 'text-blue-600'}>{v}</span>}
+            cards {v && <span className={v.startsWith('+') ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}>{v}</span>}
           </div>
         </div>
       </div>
 
       {/* Per-file slices */}
-      <div className="divide-y divide-white/40 bg-white/30">
+      <div className="divide-y divide-white/40 dark:divide-gray-600/40 bg-white/30 dark:bg-gray-900/20">
         {batch.slices.map((slice) => {
           const shortName = slice.fileName.replace(/\.\w+$/, '')
           if (slice.cardCount === 0) {
@@ -77,7 +77,7 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
 
               {/* Physical position badge */}
               <div className="flex items-center gap-2">
-                <span className="bg-white/70 border border-current rounded px-2 py-0.5 text-xs font-mono font-bold">
+                <span className="bg-white/70 dark:bg-gray-800/70 border border-current rounded px-2 py-0.5 text-xs font-mono font-bold">
                   #{slice.startCard} – #{slice.endCard}
                 </span>
                 <span className="text-sm font-semibold">
@@ -117,7 +117,7 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
           </summary>
           <div className="mt-2 flex flex-wrap gap-1">
             {batch.setIds.map((s) => (
-              <span key={s} className="bg-white/60 border border-current/20 rounded px-1.5 py-0.5 font-mono">
+              <span key={s} className="bg-white/60 dark:bg-gray-800/60 border border-current/20 rounded px-1.5 py-0.5 font-mono">
                 {s}
               </span>
             ))}
