@@ -7,7 +7,60 @@ import { parseCSV } from './utils/csvParser'
 import { computeBatches } from './utils/batchCalculator'
 import { loadSettings, saveSettings } from './utils/settings'
 import type { AppSettings } from './utils/settings'
-import type { ParsedFile, Batch } from './types'
+import type { ParsedFile, Batch, CardRow } from './types'
+
+function csvEscape(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`
+  }
+  return value
+}
+
+function generateMasterCSV(files: ParsedFile[]): string {
+  if (files.length === 0) return ''
+
+  // Use the file with the most columns as the header source
+  const referenceFile = files.reduce((a, b) => a.headers.length >= b.headers.length ? a : b)
+  const headers = referenceFile.headers
+
+  // Resolve output column indices from reference headers once
+  const outTcgplayerIdIdx = headers.indexOf('TCGplayer Id')
+  const outTotalQtyIdx = headers.indexOf('Total Quantity')
+  const outAddQtyIdx = headers.indexOf('Add to Quantity')
+
+  // Merge cards by TCGplayer Id
+  const merged = new Map<string, CardRow>()
+  for (const file of files) {
+    for (const card of file.cards) {
+      const key = card.tcgplayerId || card.number
+      const existing = merged.get(key)
+      if (existing) {
+        existing.totalQuantity += card.totalQuantity
+        existing.addQuantity += card.addQuantity
+        existing.quantity += card.quantity
+      } else {
+        merged.set(key, { ...card, rawValues: [...card.rawValues] })
+      }
+    }
+  }
+
+  const entries = [...merged.values()].sort((a, b) => {
+    const setCompare = a.setId.localeCompare(b.setId)
+    return setCompare !== 0 ? setCompare : a.number.localeCompare(b.number)
+  })
+
+  const lines = [headers.map(csvEscape).join(',')]
+  for (const card of entries) {
+    const values = [...card.rawValues]
+    while (values.length < headers.length) values.push('')
+    // Explicitly write fields we parse so they're always correct regardless of column order
+    if (outTcgplayerIdIdx >= 0) values[outTcgplayerIdIdx] = card.tcgplayerId
+    if (outTotalQtyIdx >= 0) values[outTotalQtyIdx] = card.totalQuantity > 0 ? String(card.totalQuantity) : ''
+    if (outAddQtyIdx >= 0) values[outAddQtyIdx] = card.addQuantity > 0 ? String(card.addQuantity) : ''
+    lines.push(values.map(csvEscape).join(','))
+  }
+  return lines.join('\n')
+}
 
 export default function App() {
   const [files, setFiles] = useState<ParsedFile[]>([])
@@ -63,6 +116,20 @@ export default function App() {
   const handleRun = useCallback(() => {
     setBatches(computeBatches(files, settings.maxCardsPerRun))
   }, [files, settings.maxCardsPerRun])
+
+  const handleDownloadMasterCSV = useCallback(() => {
+    const csv = generateMasterCSV(files)
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`
+    a.download = `${timestamp}-Master.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [files])
 
   const handleClear = () => {
     setFiles([])
@@ -136,6 +203,12 @@ export default function App() {
               Run
             </button>
             <button
+              onClick={handleDownloadMasterCSV}
+              className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 hover:border-green-300 dark:hover:border-green-700 transition-colors"
+            >
+              Download Master CSV
+            </button>
+            <button
               onClick={handleClear}
               className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"
             >
@@ -145,7 +218,13 @@ export default function App() {
         )}
 
         {files.length > 0 && files.length < 2 && (
-          <div className="mt-6">
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={handleDownloadMasterCSV}
+              className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 hover:border-green-300 dark:hover:border-green-700 transition-colors"
+            >
+              Download Master CSV
+            </button>
             <button
               onClick={handleClear}
               className="px-6 py-2 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-700 transition-colors"

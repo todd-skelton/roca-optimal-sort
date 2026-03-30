@@ -1,10 +1,15 @@
 export interface CardRow {
   number: string;       // e.g. "ANPR-EN063"
   setId: string;        // e.g. "ANPR" (everything before first dash)
-  quantity: number;     // Total Quantity column
+  quantity: number;     // effective quantity used for batch planning (totalQuantity || addQuantity)
+  totalQuantity: number;  // raw value from Total Quantity column (0 if blank)
+  addQuantity: number;    // raw value from Add to Quantity column (0 if blank)
   productName: string;
   setName: string;
   rarity: string;
+  tcgplayerId: string;
+  /** Raw cell values from the original CSV row, parallel to ParsedFile.headers */
+  rawValues: string[];
 }
 
 export interface ParsedFile {
@@ -13,6 +18,10 @@ export interface ParsedFile {
   totalCards: number;
   /** Ordered list of unique set IDs as they appear in the file */
   setIds: string[];
+  /** Column headers from the original CSV */
+  headers: string[];
+  /** Index of the quantity column used (Total Quantity or Add to Quantity) in headers */
+  quantityColIndex: number;
 }
 
 /** One contiguous slice of a physical sorted stack for a given batch */

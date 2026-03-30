@@ -25,6 +25,7 @@ export function parseCSV(file: File): Promise<ParsedFile> {
         const nameIdx = header.indexOf('Product Name')
         const setNameIdx = header.indexOf('Set Name')
         const rarityIdx = header.indexOf('Rarity')
+        const tcgplayerIdIdx = header.indexOf('TCGplayer Id')
 
         if (numberIdx === -1) {
           reject(new Error(`${file.name}: missing required column (Number)`))
@@ -39,17 +40,21 @@ export function parseCSV(file: File): Promise<ParsedFile> {
         const seenSetIds: string[] = []
         const setIdSet = new Set<string>()
 
+        // The column we'll write the merged quantity into
+        const quantityColIndex = totalQtyIdx !== -1 ? totalQtyIdx : addQtyIdx
+
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i]
           const number = row[numberIdx]?.trim()
           if (!number) continue
 
-          // Prefer Total Quantity; fall back to Add to Quantity (TCGplayer files
-          // often leave Total Quantity blank and populate Add to Quantity instead)
+          // Parse each quantity column independently
           const totalQtyRaw = totalQtyIdx !== -1 ? row[totalQtyIdx]?.trim() : ''
           const addQtyRaw = addQtyIdx !== -1 ? row[addQtyIdx]?.trim() : ''
-          const qtyRaw = (totalQtyRaw && totalQtyRaw !== '0') ? totalQtyRaw : addQtyRaw
-          const quantity = qtyRaw ? parseInt(qtyRaw, 10) : 1
+          const totalQuantity = totalQtyRaw ? parseInt(totalQtyRaw, 10) : 0
+          const addQuantity = addQtyRaw ? parseInt(addQtyRaw, 10) : 0
+          // Effective quantity for batch planning: prefer Total Quantity, fall back to Add to Quantity
+          const quantity = (totalQuantity > 0 ? totalQuantity : addQuantity)
           if (isNaN(quantity) || quantity <= 0) continue
 
           const setId = extractSetId(number)
@@ -58,9 +63,13 @@ export function parseCSV(file: File): Promise<ParsedFile> {
             number,
             setId,
             quantity,
+            totalQuantity,
+            addQuantity,
             productName: nameIdx !== -1 ? row[nameIdx]?.trim() ?? '' : '',
             setName: setNameIdx !== -1 ? row[setNameIdx]?.trim() ?? '' : '',
             rarity: rarityIdx !== -1 ? row[rarityIdx]?.trim() ?? '' : '',
+            tcgplayerId: tcgplayerIdIdx !== -1 ? row[tcgplayerIdIdx]?.trim() ?? '' : '',
+            rawValues: row.map((v) => v ?? ''),
           })
 
           if (!setIdSet.has(setId)) {
@@ -76,6 +85,8 @@ export function parseCSV(file: File): Promise<ParsedFile> {
           cards,
           totalCards,
           setIds: seenSetIds,
+          headers: header,
+          quantityColIndex,
         })
       },
       error(err) {
