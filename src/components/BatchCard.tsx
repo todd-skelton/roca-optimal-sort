@@ -87,6 +87,9 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                 <span className="text-sm font-semibold">
                   {slice.cardCount.toLocaleString()} cards
                 </span>
+                <span className="text-xs opacity-60">
+                  ~{(slice.cardCount / 80).toFixed(1)}"
+                </span>
               </div>
 
               {/* Set range */}
@@ -128,12 +131,6 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                 )}
               </div>
 
-              {/* Separator hint */}
-              <div className="ml-auto text-xs opacity-60">
-                {slice.startCard > 1 && (
-                  <span>Split after card&nbsp;<strong>#{slice.startCard - 1}</strong></span>
-                )}
-              </div>
             </div>
           )
         })}
