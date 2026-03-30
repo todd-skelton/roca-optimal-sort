@@ -4,13 +4,17 @@ import BatchCard from './BatchCard'
 interface Props {
   batches: Batch[]
   files: ParsedFile[]
+  maxCardsPerRun: number
 }
 
-export default function BatchResults({ batches, files }: Props) {
+export default function BatchResults({ batches, files, maxCardsPerRun }: Props) {
   if (batches.length === 0) return null
 
   const grandTotal = files.reduce((s, f) => s + f.totalCards, 0)
-  const targetPerBatch = Math.round(grandTotal / batches.length)
+  const avgPerBatch = Math.round(grandTotal / batches.length)
+  const hasMidSetSplits = batches.some((b) =>
+    b.slices.some((s) => s.startsInMiddleOfSet || s.endsInMiddleOfSet),
+  )
 
   return (
     <div className="mt-8">
@@ -25,14 +29,19 @@ export default function BatchResults({ batches, files }: Props) {
           on top) for a globally sorted collection.
         </p>
         <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-          Target: ~{targetPerBatch.toLocaleString()} cards per run &middot;{' '}
-          {grandTotal.toLocaleString()} total cards
+          Max {maxCardsPerRun.toLocaleString()} cards per run &middot; avg&nbsp;
+          ~{avgPerBatch.toLocaleString()} &middot; {grandTotal.toLocaleString()} total
         </p>
+        {hasMidSetSplits && (
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-2 font-medium">
+            Some runs split a set mid-way to stay within the card limit — indicated below.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-6">
         {batches.map((batch) => (
-          <BatchCard key={batch.batchNumber} batch={batch} targetPerBatch={targetPerBatch} />
+          <BatchCard key={batch.batchNumber} batch={batch} targetPerBatch={avgPerBatch} />
         ))}
       </div>
     </div>

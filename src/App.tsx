@@ -2,8 +2,11 @@ import { useState, useCallback } from 'react'
 import FileUpload from './components/FileUpload'
 import FileList from './components/FileList'
 import BatchResults from './components/BatchResults'
+import SettingsPanel from './components/SettingsPanel'
 import { parseCSV } from './utils/csvParser'
 import { computeBatches } from './utils/batchCalculator'
+import { loadSettings, saveSettings } from './utils/settings'
+import type { AppSettings } from './utils/settings'
 import type { ParsedFile, Batch } from './types'
 
 export default function App() {
@@ -11,6 +14,14 @@ export default function App() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [errors, setErrors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [settings, setSettings] = useState<AppSettings>(loadSettings)
+  const [showSettings, setShowSettings] = useState(false)
+
+  const handleSettingsChange = useCallback((next: AppSettings) => {
+    setSettings(next)
+    saveSettings(next)
+    setBatches([])
+  }, [])
 
   const handleNewFiles = useCallback(async (newFileList: File[]) => {
     setLoading(true)
@@ -50,8 +61,8 @@ export default function App() {
   }, [])
 
   const handleRun = useCallback(() => {
-    setBatches(computeBatches(files))
-  }, [files])
+    setBatches(computeBatches(files, settings.maxCardsPerRun))
+  }, [files, settings.maxCardsPerRun])
 
   const handleClear = () => {
     setFiles([])
@@ -67,8 +78,27 @@ export default function App() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Roca Optimal Sort</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">Second-pass global sort planner</p>
           </div>
+          <button
+            onClick={() => setShowSettings((v) => !v)}
+            title="Settings"
+            aria-label="Toggle settings"
+            className={`p-2 rounded-lg transition-colors ${
+              showSettings
+                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
         </div>
       </header>
+
+      {showSettings && (
+        <SettingsPanel settings={settings} onChange={handleSettingsChange} />
+      )}
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         <FileUpload onFiles={handleNewFiles} disabled={loading} />
@@ -125,7 +155,7 @@ export default function App() {
           </div>
         )}
 
-        <BatchResults batches={batches} files={files} />
+        <BatchResults batches={batches} files={files} maxCardsPerRun={settings.maxCardsPerRun} />
       </main>
     </div>
   )

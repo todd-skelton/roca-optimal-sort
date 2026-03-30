@@ -26,6 +26,10 @@ export interface StackSlice {
   /** 1-based physical card position where this slice ends in the stack */
   endCard: number;
   sets: string[];
+  /** True if this slice starts in the middle of firstSetId (the run continues a split set) */
+  startsInMiddleOfSet: boolean;
+  /** True if this slice ends in the middle of lastSetId (the set continues in the next run) */
+  endsInMiddleOfSet: boolean;
 }
 
 export interface Batch {

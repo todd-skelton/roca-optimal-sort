@@ -28,6 +28,7 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
   const v = variance(batch.totalCards, targetPerBatch)
   const firstSet = batch.setIds[0] ?? '—'
   const lastSet = batch.setIds[batch.setIds.length - 1] ?? '—'
+  const hasMidSet = batch.slices.some((s) => s.startsInMiddleOfSet || s.endsInMiddleOfSet)
 
   return (
     <div className={`border-2 rounded-xl overflow-hidden ${color}`}>
@@ -36,13 +37,16 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
         <div>
           <h3 className="text-lg font-bold">
             Run {batch.batchNumber}
+            {hasMidSet && (
+              <span className="ml-2 text-xs font-normal opacity-70 italic">(mid-set split)</span>
+            )}
           </h3>
           <p className="text-sm opacity-75">
             Sets&nbsp;
             <span className="font-mono font-semibold">{firstSet}</span>
             &nbsp;&rarr;&nbsp;
             <span className="font-mono font-semibold">{lastSet}</span>
-            &nbsp;({batch.setIds.length} sets)
+            &nbsp;({batch.setIds.length} set{batch.setIds.length !== 1 ? 's' : ''})
           </p>
         </div>
         <div className="text-right">
@@ -87,15 +91,29 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
 
               {/* Set range */}
               <div className="text-sm">
-                <span className="opacity-60">Pull&nbsp;</span>
-                <span className="font-mono font-semibold">{slice.firstSetId}</span>
+                {slice.startsInMiddleOfSet ? (
+                  <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                    &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
+                  </span>
+                ) : (
+                  <>
+                    <span className="opacity-60">Pull&nbsp;</span>
+                    <span className="font-mono font-semibold">{slice.firstSetId}</span>
+                  </>
+                )}
                 {slice.firstSetId !== slice.lastSetId && (
                   <>
                     <span className="opacity-60">&nbsp;through&nbsp;</span>
                     <span className="font-mono font-semibold">{slice.lastSetId}</span>
                   </>
                 )}
-                <span className="opacity-60">&nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})</span>
+                {slice.endsInMiddleOfSet ? (
+                  <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                    &nbsp;&#8629;&nbsp;(partial)
+                  </span>
+                ) : (
+                  <span className="opacity-60">&nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})</span>
+                )}
               </div>
 
               {/* Separator hint */}
