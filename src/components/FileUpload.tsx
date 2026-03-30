@@ -36,16 +36,15 @@ export default function FileUpload({ onFiles, disabled }: Props) {
         ref={inputRef}
         type="file"
         accept=".csv"
-        multiple
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
       <div className="text-4xl mb-3">📂</div>
       <p className="text-lg font-semibold text-gray-700">
-        Drop Roca CSV files here or click to browse
+        Drop a Roca CSV file here or click to browse
       </p>
       <p className="text-sm text-gray-500 mt-1">
-        Select all sorted stack files — one file per physical stack
+        Add one file per physical stack, then click Run
       </p>
     </div>
   )
