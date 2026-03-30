@@ -30,6 +30,8 @@ export interface StackSlice {
   startsInMiddleOfSet: boolean;
   /** True if this slice ends in the middle of lastSetId (the set continues in the next run) */
   endsInMiddleOfSet: boolean;
+  /** When endsInMiddleOfSet: the last card to pull and how many of it (quantityNeeded may be < quantityTotal if mid-quantity split) */
+  splitEndCard?: { cardNumber: string; quantityNeeded: number; quantityTotal: number }
 }
 
 export interface Batch {

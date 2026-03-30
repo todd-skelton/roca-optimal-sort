@@ -109,7 +109,19 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                 )}
                 {slice.endsInMiddleOfSet ? (
                   <span className="text-amber-700 dark:text-amber-400 font-semibold">
-                    &nbsp;&#8629;&nbsp;(partial)
+                    &nbsp;&#8629;&nbsp;
+                    {slice.splitEndCard ? (
+                      <>
+                        stop at <span className="font-mono">{slice.splitEndCard.cardNumber}</span>
+                        {slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
+                          <span className="opacity-80">
+                            &nbsp;({slice.splitEndCard.quantityNeeded}/{slice.splitEndCard.quantityTotal})
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      '(partial)'
+                    )}
                   </span>
                 ) : (
                   <span className="opacity-60">&nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})</span>
