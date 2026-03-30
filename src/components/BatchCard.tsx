@@ -60,12 +60,11 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
       {/* Per-file slices */}
       <div className="divide-y divide-white/40 dark:divide-gray-600/40 bg-white/30 dark:bg-gray-900/20">
         {batch.slices.map((slice) => {
-          const shortName = slice.fileName.replace(/\.\w+$/, '')
           if (slice.cardCount === 0) {
             return (
               <div key={slice.fileName} className="px-5 py-3 flex items-center gap-4 opacity-40">
-                <div className="font-mono text-xs w-56 truncate" title={slice.fileName}>
-                  {shortName}
+                <div className="font-mono text-xs truncate" title={slice.fileName}>
+                  {slice.fileName}
                 </div>
                 <div className="text-sm italic">No cards in this range</div>
               </div>
@@ -75,8 +74,8 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
           return (
             <div key={slice.fileName} className="px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-1">
               {/* File name */}
-              <div className="font-mono text-xs w-56 truncate font-semibold" title={slice.fileName}>
-                {shortName}
+              <div className="font-mono text-xs truncate font-semibold" title={slice.fileName}>
+                {slice.fileName}
               </div>
 
               {/* Physical position badge */}
