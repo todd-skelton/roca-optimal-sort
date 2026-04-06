@@ -80,27 +80,25 @@ export default function App() {
     setLoading(true)
     setErrors([])
 
-    const errs: string[] = []
-    const parsed: ParsedFile[] = []
-
-    await Promise.all(
+    const results = await Promise.all(
       newFileList.map(async (f) => {
         try {
-          const result = await parseCSV(f)
-          parsed.push(result)
+          return { parsed: await parseCSV(f), error: null as string | null }
         } catch (e) {
-          errs.push((e as Error).message)
+          return { parsed: null as ParsedFile | null, error: (e as Error).message }
         }
       }),
     )
 
+    const parsed = results.flatMap((result) => (result.parsed ? [result.parsed] : []))
+    const errs = results.flatMap((result) => (result.error ? [result.error] : []))
+
     setFiles((prev) => {
       const existingNames = new Set(prev.map((p) => p.fileName))
-      const merged = [
+      return [
         ...prev,
         ...parsed.filter((p) => !existingNames.has(p.fileName)),
-      ].sort((a, b) => a.fileName.localeCompare(b.fileName))
-      return merged
+      ]
     })
     setBatches([])
 
@@ -110,6 +108,27 @@ export default function App() {
 
   const handleRemove = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.fileName !== fileName))
+    setBatches([])
+  }, [])
+
+  const handleReorder = useCallback((sourceIndex: number, targetIndex: number) => {
+    if (sourceIndex === targetIndex) return
+
+    setFiles((prev) => {
+      if (
+        sourceIndex < 0 ||
+        targetIndex < 0 ||
+        sourceIndex >= prev.length ||
+        targetIndex >= prev.length
+      ) {
+        return prev
+      }
+
+      const next = [...prev]
+      const [moved] = next.splice(sourceIndex, 1)
+      next.splice(targetIndex, 0, moved)
+      return next
+    })
     setBatches([])
   }, [])
 
@@ -185,7 +204,7 @@ export default function App() {
           </div>
         )}
 
-        <FileList files={files} onRemove={handleRemove} />
+        <FileList files={files} onRemove={handleRemove} onReorder={handleReorder} />
 
         {files.length === 1 && (
           <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">

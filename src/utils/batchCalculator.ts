@@ -135,7 +135,7 @@ export function computeBatches(files: ParsedFile[], maxCardsPerRun: number): Bat
       const presentSets: string[] = []
       let firstContributing: BatchSegment | null = null
       let lastContributing: BatchSegment | null = null
-      let splitEndCard: { cardNumber: string; quantityNeeded: number; quantityTotal: number } | undefined
+      let splitEndCard: { cardNumber: string; productName: string; quantityNeeded: number; quantityTotal: number } | undefined
 
       for (const seg of segments) {
         const pos = setPos.get(seg.setId)
@@ -170,26 +170,23 @@ export function computeBatches(files: ParsedFile[], maxCardsPerRun: number): Bat
         lastContributing = seg
         sliceEnd = segEnd
 
-        // Find which specific card the split lands on
-        if (seg.isMidSetEnd) {
-          const offsetInSet = segEnd - pos.start + 1 // 1-based within the set
-          let accumulated = 0
-          splitEndCard = undefined
-          for (const card of file.cards) {
-            if (card.setId !== seg.setId) continue
-            const prev = accumulated
-            accumulated += card.quantity
-            if (accumulated >= offsetInSet) {
-              splitEndCard = {
-                cardNumber: card.number,
-                quantityNeeded: offsetInSet - prev,
-                quantityTotal: card.quantity,
-              }
-              break
+        // Find which specific card this slice lands on so the UI can tell the user where to stop.
+        const offsetInSet = segEnd - pos.start + 1 // 1-based within the set
+        let accumulated = 0
+        splitEndCard = undefined
+        for (const card of file.cards) {
+          if (card.setId !== seg.setId) continue
+          const prev = accumulated
+          accumulated += card.quantity
+          if (accumulated >= offsetInSet) {
+            splitEndCard = {
+              cardNumber: card.number,
+              productName: card.productName,
+              quantityNeeded: offsetInSet - prev,
+              quantityTotal: card.quantity,
             }
+            break
           }
-        } else {
-          splitEndCard = undefined
         }
 
         totalCount += cardsForFile
@@ -221,7 +218,7 @@ export function computeBatches(files: ParsedFile[], maxCardsPerRun: number): Bat
           sets: presentSets,
           startsInMiddleOfSet: firstContributing?.isMidSetStart ?? false,
           endsInMiddleOfSet: lastContributing?.isMidSetEnd ?? false,
-          splitEndCard: (lastContributing?.isMidSetEnd ? splitEndCard : undefined),
+          splitEndCard,
         })
       }
     }

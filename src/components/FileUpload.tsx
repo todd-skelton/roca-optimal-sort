@@ -36,6 +36,7 @@ export default function FileUpload({ onFiles, disabled }: Props) {
         ref={inputRef}
         type="file"
         accept=".csv"
+        multiple
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />

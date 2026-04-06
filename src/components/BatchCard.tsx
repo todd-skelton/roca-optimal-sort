@@ -26,13 +26,12 @@ function variance(actual: number, target: number): string {
 export default function BatchCard({ batch, targetPerBatch }: Props) {
   const color = COLORS[(batch.batchNumber - 1) % COLORS.length]
   const v = variance(batch.totalCards, targetPerBatch)
-  const firstSet = batch.setIds[0] ?? '—'
-  const lastSet = batch.setIds[batch.setIds.length - 1] ?? '—'
+  const firstSet = batch.setIds[0] ?? '-'
+  const lastSet = batch.setIds[batch.setIds.length - 1] ?? '-'
   const hasMidSet = batch.slices.some((s) => s.startsInMiddleOfSet || s.endsInMiddleOfSet)
 
   return (
     <div className={`border-2 rounded-xl overflow-hidden ${color}`}>
-      {/* Header */}
       <div className={`px-5 py-4 flex items-center justify-between border-b ${color}`}>
         <div>
           <h3 className="text-lg font-bold">
@@ -52,12 +51,22 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
         <div className="text-right">
           <div className="text-2xl font-bold">{batch.totalCards.toLocaleString()}</div>
           <div className="text-sm opacity-75">
-            cards {v && <span className={v.startsWith('+') ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}>{v}</span>}
+            cards{' '}
+            {v && (
+              <span
+                className={
+                  v.startsWith('+')
+                    ? 'text-orange-600 dark:text-orange-400'
+                    : 'text-blue-600 dark:text-blue-400'
+                }
+              >
+                {v}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Per-file slices */}
       <div className="divide-y divide-white/40 dark:divide-gray-600/40 bg-white/30 dark:bg-gray-900/20">
         {batch.slices.map((slice) => {
           if (slice.cardCount === 0) {
@@ -72,27 +81,26 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
           }
 
           return (
-            <div key={slice.fileName} className="px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-1">
-              {/* File name */}
-              <div className="font-mono text-xs truncate font-semibold" title={slice.fileName}>
-                {slice.fileName}
+            <div key={slice.fileName} className="px-5 py-3">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+                <div className="font-mono text-xs truncate font-semibold" title={slice.fileName}>
+                  {slice.fileName}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="bg-white/70 dark:bg-gray-800/70 border border-current rounded px-2 py-0.5 text-xs font-mono font-bold">
+                    #{slice.startCard} - #{slice.endCard}
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {slice.cardCount.toLocaleString()} cards
+                  </span>
+                  <span className="text-xs opacity-60">
+                    ~{(slice.cardCount / 80).toFixed(1)}"
+                  </span>
+                </div>
               </div>
 
-              {/* Physical position badge */}
-              <div className="flex items-center gap-2">
-                <span className="bg-white/70 dark:bg-gray-800/70 border border-current rounded px-2 py-0.5 text-xs font-mono font-bold">
-                  #{slice.startCard} – #{slice.endCard}
-                </span>
-                <span className="text-sm font-semibold">
-                  {slice.cardCount.toLocaleString()} cards
-                </span>
-                <span className="text-xs opacity-60">
-                  ~{(slice.cardCount / 80).toFixed(1)}"
-                </span>
-              </div>
-
-              {/* Set range */}
-              <div className="text-sm">
+              <div className="mt-2 text-sm">
                 {slice.startsInMiddleOfSet ? (
                   <span className="text-amber-700 dark:text-amber-400 font-semibold">
                     &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
@@ -109,33 +117,40 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                     <span className="font-mono font-semibold">{slice.lastSetId}</span>
                   </>
                 )}
-                {slice.endsInMiddleOfSet ? (
-                  <span className="text-amber-700 dark:text-amber-400 font-semibold">
-                    &nbsp;&#8629;&nbsp;
-                    {slice.splitEndCard ? (
+                {slice.splitEndCard ? (
+                  <span
+                    className={
+                      slice.endsInMiddleOfSet
+                        ? 'text-amber-700 dark:text-amber-400 font-semibold'
+                        : 'opacity-80'
+                    }
+                  >
+                    &nbsp;
+                    {slice.endsInMiddleOfSet && <>&#8629;&nbsp;</>}
+                    stop at <span className="font-mono">{slice.splitEndCard.cardNumber}</span>
+                    {slice.splitEndCard.productName && (
                       <>
-                        stop at <span className="font-mono">{slice.splitEndCard.cardNumber}</span>
-                        {slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
-                          <span className="opacity-80">
-                            &nbsp;({slice.splitEndCard.quantityNeeded}/{slice.splitEndCard.quantityTotal})
-                          </span>
-                        )}
+                        &nbsp;
+                        <span className="italic">{slice.splitEndCard.productName}</span>
                       </>
-                    ) : (
-                      '(partial)'
+                    )}
+                    {slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
+                      <span className="opacity-80">
+                        &nbsp;({slice.splitEndCard.quantityNeeded}/{slice.splitEndCard.quantityTotal})
+                      </span>
                     )}
                   </span>
                 ) : (
-                  <span className="opacity-60">&nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})</span>
+                  <span className="opacity-60">
+                    &nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})
+                  </span>
                 )}
               </div>
-
             </div>
           )
         })}
       </div>
 
-      {/* Set list detail */}
       {batch.setIds.length > 0 && (
         <details className="px-5 py-2 text-xs">
           <summary className="cursor-pointer opacity-60 hover:opacity-100 select-none">
@@ -143,7 +158,10 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
           </summary>
           <div className="mt-2 flex flex-wrap gap-1">
             {batch.setIds.map((s) => (
-              <span key={s} className="bg-white/60 dark:bg-gray-800/60 border border-current/20 rounded px-1.5 py-0.5 font-mono">
+              <span
+                key={s}
+                className="bg-white/60 dark:bg-gray-800/60 border border-current/20 rounded px-1.5 py-0.5 font-mono"
+              >
                 {s}
               </span>
             ))}
