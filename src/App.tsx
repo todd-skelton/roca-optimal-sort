@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import FileUpload from './components/FileUpload'
 import FileList from './components/FileList'
 import BatchResults from './components/BatchResults'
@@ -6,6 +6,7 @@ import SettingsPanel from './components/SettingsPanel'
 import { parseCSV } from './utils/csvParser'
 import { computeBatches } from './utils/batchCalculator'
 import { loadSettings, saveSettings } from './utils/settings'
+import { loadSession, saveSession, clearSession } from './utils/sessionStorage'
 import type { AppSettings } from './utils/settings'
 import type { ParsedFile, Batch, CardRow } from './types'
 
@@ -69,11 +70,70 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [settings, setSettings] = useState<AppSettings>(loadSettings)
   const [showSettings, setShowSettings] = useState(false)
+  const [hasComputedResults, setHasComputedResults] = useState(false)
+  const [hydratedSession, setHydratedSession] = useState(false)
+  const [showRestoreNotice, setShowRestoreNotice] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function hydrateSession() {
+      const session = await loadSession()
+      if (cancelled) return
+
+      if (session) {
+        setFiles(session.files)
+        setHasComputedResults(session.hasComputedResults)
+        if (session.hasComputedResults) {
+          setBatches(computeBatches(session.files, settings.maxCardsPerRun))
+        }
+        if (session.files.length > 0) {
+          setShowRestoreNotice(true)
+        }
+      }
+
+      setHydratedSession(true)
+    }
+
+    void hydrateSession()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hydratedSession) return
+
+    if (files.length === 0) {
+      void clearSession()
+      return
+    }
+
+    void saveSession({
+      version: 1,
+      files,
+      hasComputedResults,
+    })
+  }, [files, hasComputedResults, hydratedSession])
+
+  useEffect(() => {
+    if (!showRestoreNotice) return
+
+    const timeoutId = window.setTimeout(() => {
+      setShowRestoreNotice(false)
+    }, 4000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [showRestoreNotice])
 
   const handleSettingsChange = useCallback((next: AppSettings) => {
     setSettings(next)
     saveSettings(next)
     setBatches([])
+    setHasComputedResults(false)
   }, [])
 
   const handleNewFiles = useCallback(async (newFileList: File[]) => {
@@ -101,6 +161,7 @@ export default function App() {
       ]
     })
     setBatches([])
+    setHasComputedResults(false)
 
     setErrors(errs)
     setLoading(false)
@@ -109,6 +170,7 @@ export default function App() {
   const handleRemove = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.fileName !== fileName))
     setBatches([])
+    setHasComputedResults(false)
   }, [])
 
   const handleReorder = useCallback((sourceIndex: number, targetIndex: number) => {
@@ -130,10 +192,13 @@ export default function App() {
       return next
     })
     setBatches([])
+    setHasComputedResults(false)
   }, [])
 
   const handleRun = useCallback(() => {
-    setBatches(computeBatches(files, settings.maxCardsPerRun))
+    const nextBatches = computeBatches(files, settings.maxCardsPerRun)
+    setBatches(nextBatches)
+    setHasComputedResults(nextBatches.length > 0)
   }, [files, settings.maxCardsPerRun])
 
   const handleDownloadMasterCSV = useCallback(() => {
@@ -150,11 +215,13 @@ export default function App() {
     URL.revokeObjectURL(url)
   }, [files])
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setFiles([])
     setBatches([])
     setErrors([])
-  }
+    setHasComputedResults(false)
+    void clearSession()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -189,9 +256,15 @@ export default function App() {
       <main className="max-w-5xl mx-auto px-6 py-8">
         <FileUpload onFiles={handleNewFiles} disabled={loading} />
 
+        {showRestoreNotice && (
+          <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700 rounded-lg text-sm text-emerald-800 dark:text-emerald-300">
+            Restored your previous session from this browser.
+          </div>
+        )}
+
         {loading && (
           <div className="mt-4 text-center text-gray-600 dark:text-gray-300 animate-pulse">
-            Parsing files…
+            Parsing files...
           </div>
         )}
 
