@@ -67,84 +67,128 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
         </div>
       </div>
 
-      <div className="divide-y divide-white/40 dark:divide-gray-600/40 bg-white/30 dark:bg-gray-900/20">
-        {batch.slices.map((slice) => {
+      <div className="space-y-2 p-2 bg-white/30 dark:bg-gray-900/20">
+        {batch.slices.map((slice, index) => {
+          const rowTone =
+            index % 2 === 0
+              ? 'bg-white/80 dark:bg-gray-950/50 border-white/70 dark:border-gray-700/70'
+              : 'bg-white/55 dark:bg-gray-900/60 border-white/50 dark:border-gray-700/60'
+          const badgeTone =
+            index % 2 === 0
+              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+              : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+
           if (slice.cardCount === 0) {
             return (
-              <div key={slice.fileName} className="px-5 py-3 flex items-center gap-4 opacity-40">
-                <div className="font-mono text-xs truncate" title={slice.fileName}>
-                  {slice.fileName}
+              <div
+                key={slice.fileName}
+                data-testid={`batch-row-${index + 1}`}
+                className={`rounded-xl border px-4 py-3 shadow-sm ${rowTone}`}
+              >
+                <div className="flex items-center gap-3 opacity-50">
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badgeTone}`}
+                  >
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs truncate" title={slice.fileName}>
+                      {slice.fileName}
+                    </div>
+                    <div className="mt-0.5 text-sm italic">No cards in this range</div>
+                  </div>
                 </div>
-                <div className="text-sm italic">No cards in this range</div>
               </div>
             )
           }
 
           return (
-            <div key={slice.fileName} className="px-5 py-3">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-                <div className="font-mono text-xs truncate font-semibold" title={slice.fileName}>
-                  {slice.fileName}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="bg-white/70 dark:bg-gray-800/70 border border-current rounded px-2 py-0.5 text-xs font-mono font-bold">
-                    #{slice.startCard} - #{slice.endCard}
-                  </span>
-                  <span className="text-sm font-semibold">
-                    {slice.cardCount.toLocaleString()} cards
-                  </span>
-                  <span className="text-xs opacity-60">
-                    ~{(slice.cardCount / 80).toFixed(1)}"
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-2 text-sm">
-                {slice.startsInMiddleOfSet ? (
-                  <span className="text-amber-700 dark:text-amber-400 font-semibold">
-                    &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
-                  </span>
-                ) : (
-                  <>
-                    <span className="opacity-60">Pull&nbsp;</span>
-                    <span className="font-mono font-semibold">{slice.firstSetId}</span>
-                  </>
-                )}
-                {slice.firstSetId !== slice.lastSetId && (
-                  <>
-                    <span className="opacity-60">&nbsp;through&nbsp;</span>
-                    <span className="font-mono font-semibold">{slice.lastSetId}</span>
-                  </>
-                )}
-                {slice.splitEndCard ? (
+            <div
+              key={slice.fileName}
+              data-testid={`batch-row-${index + 1}`}
+              className={`rounded-xl border px-4 py-3 shadow-sm ${rowTone}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center gap-1.5 pt-0.5">
                   <span
-                    className={
-                      slice.endsInMiddleOfSet
-                        ? 'text-amber-700 dark:text-amber-400 font-semibold'
-                        : 'opacity-80'
-                    }
+                    aria-hidden="true"
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badgeTone}`}
                   >
-                    &nbsp;
-                    {slice.endsInMiddleOfSet && <>&#8629;&nbsp;</>}
-                    stop at <span className="font-mono">{slice.splitEndCard.cardNumber}</span>
-                    {slice.splitEndCard.productName && (
+                    {index + 1}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="h-full min-h-10 w-px rounded-full bg-current/20"
+                  />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+                    <div className="font-mono text-xs truncate font-semibold" title={slice.fileName}>
+                      {slice.fileName}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="bg-white/85 dark:bg-gray-800/80 border border-current/20 rounded px-2 py-0.5 text-xs font-mono font-bold shadow-sm">
+                        #{slice.startCard} - #{slice.endCard}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {slice.cardCount.toLocaleString()} cards
+                      </span>
+                      <span className="text-xs opacity-60">
+                        ~{(slice.cardCount / 80).toFixed(1)}"
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-1.5 text-sm leading-5">
+                    {slice.startsInMiddleOfSet ? (
+                      <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                        &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
+                      </span>
+                    ) : (
                       <>
-                        &nbsp;
-                        <span className="italic">{slice.splitEndCard.productName}</span>
+                        <span className="opacity-60">Pull&nbsp;</span>
+                        <span className="font-mono font-semibold">{slice.firstSetId}</span>
                       </>
                     )}
-                    {slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
-                      <span className="opacity-80">
-                        &nbsp;({slice.splitEndCard.quantityNeeded}/{slice.splitEndCard.quantityTotal})
+                    {slice.firstSetId !== slice.lastSetId && (
+                      <>
+                        <span className="opacity-60">&nbsp;through&nbsp;</span>
+                        <span className="font-mono font-semibold">{slice.lastSetId}</span>
+                      </>
+                    )}
+                    {slice.splitEndCard ? (
+                      <span
+                        className={
+                          slice.endsInMiddleOfSet
+                            ? 'text-amber-700 dark:text-amber-400 font-semibold'
+                            : 'opacity-80'
+                        }
+                      >
+                        &nbsp;
+                        {slice.endsInMiddleOfSet && <>&#8629;&nbsp;</>}
+                        stop at <span className="font-mono">{slice.splitEndCard.cardNumber}</span>
+                        {slice.splitEndCard.productName && (
+                          <>
+                            &nbsp;
+                            <span className="italic">{slice.splitEndCard.productName}</span>
+                          </>
+                        )}
+                        {slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
+                          <span className="opacity-80">
+                            &nbsp;({slice.splitEndCard.quantityNeeded}/{slice.splitEndCard.quantityTotal})
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="opacity-60">
+                        &nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})
                       </span>
                     )}
-                  </span>
-                ) : (
-                  <span className="opacity-60">
-                    &nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})
-                  </span>
-                )}
+                  </div>
+                </div>
               </div>
             </div>
           )
