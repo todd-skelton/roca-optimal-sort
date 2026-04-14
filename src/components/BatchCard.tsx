@@ -135,44 +135,42 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
             <div
               key={slice.fileName}
               data-testid={`batch-row-${index + 1}`}
-              className={`rounded-xl border px-4 py-3 shadow-sm ${rowTone}`}
+              className={`rounded-xl border px-4 py-4 shadow-sm ${rowTone}`}
             >
               <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center gap-1.5 pt-0.5">
                   <span
                     aria-hidden="true"
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badgeTone}`}
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${badgeTone}`}
                   >
                     {avatarLabel}
                   </span>
-                  <span
-                    aria-hidden="true"
-                    className="h-full min-h-10 w-px rounded-full bg-current/20"
-                  />
+                  <span aria-hidden="true" className="h-8 w-px rounded-full bg-current/20" />
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-                    <div className="font-mono text-xs truncate font-semibold" title={slice.fileName}>
+                <div className="min-w-0 flex-1 md:flex md:items-start md:gap-4">
+                  <div className="min-w-0 flex-1">
+                    {/* Row 1: filename */}
+                    <div className="font-mono text-sm truncate font-semibold" title={slice.fileName}>
                       {slice.fileName}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="bg-white/85 dark:bg-gray-800/80 border border-current/20 rounded px-2 py-0.5 text-xs font-mono font-bold shadow-sm">
+                    {/* Row 2: card range stats */}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3">
+                      <span className="bg-white/85 dark:bg-gray-800/80 border border-current/20 rounded px-2 py-0.5 text-sm font-mono font-bold shadow-sm">
                         #{slice.startCard} - #{slice.endCard}
                       </span>
-                      <span className="text-sm font-semibold">
+                      <span className="text-base font-semibold">
                         {slice.cardCount.toLocaleString()} cards
                       </span>
-                      <span className="text-xs opacity-60">
+                      <span className="text-sm opacity-60">
                         ~{(slice.cardCount / 80).toFixed(1)}"
                       </span>
                     </div>
-                  </div>
 
-                  <div className="mt-1.5 text-sm leading-5">
-                    <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] md:items-start">
-                      <div>
+                    {/* Row 3: pull range */}
+                    <div className="mt-2 text-base leading-6">
+                      <div className="pt-1">
                         {slice.startsInMiddleOfSet ? (
                           <span className="text-amber-700 dark:text-amber-400 font-semibold">
                             &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
@@ -198,40 +196,40 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                           </span>
                         )}
                       </div>
-
-                      <div
-                        data-testid={`final-target-${index + 1}`}
-                        className="rounded-lg border border-current/15 bg-white/75 px-3 py-2 shadow-sm dark:bg-gray-900/50"
-                      >
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] opacity-60">
-                          Final pull target
-                        </div>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                          <span className="rounded-md bg-slate-900 px-2 py-0.5 text-xs font-mono font-bold text-white dark:bg-slate-100 dark:text-slate-900">
-                            {finalSetId}
-                          </span>
-                          {finalCardNumber ? (
-                            <span className="text-sm font-mono font-semibold">
-                              {finalCardNumber}
-                            </span>
-                          ) : (
-                            <span className="text-xs opacity-60">Entire last set</span>
-                          )}
-                        </div>
-                        {finalCardName && (
-                          <div className="mt-1 text-sm font-semibold leading-5">
-                            {finalCardName}
-                          </div>
-                        )}
-                        {slice.splitEndCard &&
-                          slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
-                            <div className="mt-1 text-xs opacity-75">
-                              Pull {slice.splitEndCard.quantityNeeded} of{' '}
-                              {slice.splitEndCard.quantityTotal} copies from this card.
-                            </div>
-                          )}
-                      </div>
                     </div>
+                  </div>
+
+                  <div
+                    data-testid={`final-target-${index + 1}`}
+                    className="mt-3 rounded-lg border-2 border-slate-700/30 bg-slate-900/90 px-4 py-3 shadow-md dark:border-slate-400/20 dark:bg-slate-950/80 md:mt-0 md:w-[min(20rem,100%)] md:shrink-0"
+                  >
+                    <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                      Final pull target
+                    </div>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <span className="rounded bg-slate-600 px-2 py-0.5 text-sm font-mono font-bold text-white dark:bg-slate-700">
+                        {finalSetId}
+                      </span>
+                      {finalCardNumber ? (
+                        <span className="text-base font-mono font-bold text-white">
+                          {finalCardNumber}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-slate-400">Entire last set</span>
+                      )}
+                    </div>
+                    {finalCardName && (
+                      <div className="mt-1.5 text-lg font-bold leading-tight text-white">
+                        {finalCardName}
+                      </div>
+                    )}
+                    {slice.splitEndCard &&
+                      slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
+                        <div className="mt-1.5 text-sm text-slate-300">
+                          Pull {slice.splitEndCard.quantityNeeded} of{' '}
+                          {slice.splitEndCard.quantityTotal} copies from this card.
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
