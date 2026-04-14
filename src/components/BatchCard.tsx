@@ -23,6 +23,12 @@ function variance(actual: number, target: number): string {
   return diff > 0 ? `+${pct}%` : `${pct}%`
 }
 
+function fileAvatarLabel(fileName: string): string {
+  const withoutExtension = fileName.replace(/\.[^.]+$/, '')
+  const finalSegment = withoutExtension.split(/[-_]/).filter(Boolean).pop() ?? withoutExtension
+  return finalSegment.slice(-2).toUpperCase() || '--'
+}
+
 export default function BatchCard({ batch, targetPerBatch }: Props) {
   const color = COLORS[(batch.batchNumber - 1) % COLORS.length]
   const v = variance(batch.totalCards, targetPerBatch)
@@ -67,6 +73,24 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
         </div>
       </div>
 
+      {batch.setIds.length > 0 && (
+        <details className="px-5 py-2 text-xs">
+          <summary className="cursor-pointer opacity-60 hover:opacity-100 select-none">
+            Show all {batch.setIds.length} sets in this run
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {batch.setIds.map((s) => (
+              <span
+                key={s}
+                className="bg-white/60 dark:bg-gray-800/60 border border-current/20 rounded px-1.5 py-0.5 font-mono"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        </details>
+      )}
+
       <div className="space-y-2 p-2 bg-white/30 dark:bg-gray-900/20">
         {batch.slices.map((slice, index) => {
           const rowTone =
@@ -77,6 +101,10 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
             index % 2 === 0
               ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
               : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+          const finalSetId = slice.lastSetId || slice.firstSetId || '-'
+          const finalCardNumber = slice.splitEndCard?.cardNumber
+          const finalCardName = slice.splitEndCard?.productName
+          const avatarLabel = fileAvatarLabel(slice.fileName)
 
           if (slice.cardCount === 0) {
             return (
@@ -90,7 +118,7 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                     aria-hidden="true"
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badgeTone}`}
                   >
-                    {index + 1}
+                    {avatarLabel}
                   </span>
                   <div className="min-w-0">
                     <div className="font-mono text-xs truncate" title={slice.fileName}>
@@ -115,7 +143,7 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                     aria-hidden="true"
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${badgeTone}`}
                   >
-                    {index + 1}
+                    {avatarLabel}
                   </span>
                   <span
                     aria-hidden="true"
@@ -143,50 +171,67 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
                   </div>
 
                   <div className="mt-1.5 text-sm leading-5">
-                    {slice.startsInMiddleOfSet ? (
-                      <span className="text-amber-700 dark:text-amber-400 font-semibold">
-                        &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
-                      </span>
-                    ) : (
-                      <>
-                        <span className="opacity-60">Pull&nbsp;</span>
-                        <span className="font-mono font-semibold">{slice.firstSetId}</span>
-                      </>
-                    )}
-                    {slice.firstSetId !== slice.lastSetId && (
-                      <>
-                        <span className="opacity-60">&nbsp;through&nbsp;</span>
-                        <span className="font-mono font-semibold">{slice.lastSetId}</span>
-                      </>
-                    )}
-                    {slice.splitEndCard ? (
-                      <span
-                        className={
-                          slice.endsInMiddleOfSet
-                            ? 'text-amber-700 dark:text-amber-400 font-semibold'
-                            : 'opacity-80'
-                        }
-                      >
-                        &nbsp;
-                        {slice.endsInMiddleOfSet && <>&#8629;&nbsp;</>}
-                        stop at <span className="font-mono">{slice.splitEndCard.cardNumber}</span>
-                        {slice.splitEndCard.productName && (
+                    <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] md:items-start">
+                      <div>
+                        {slice.startsInMiddleOfSet ? (
+                          <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                            &#8627;&nbsp;cont.&nbsp;<span className="font-mono">{slice.firstSetId}</span>
+                          </span>
+                        ) : (
                           <>
-                            &nbsp;
-                            <span className="italic">{slice.splitEndCard.productName}</span>
+                            <span className="opacity-60">Pull&nbsp;</span>
+                            <span className="font-mono font-semibold">{slice.firstSetId}</span>
                           </>
                         )}
-                        {slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
-                          <span className="opacity-80">
-                            &nbsp;({slice.splitEndCard.quantityNeeded}/{slice.splitEndCard.quantityTotal})
+                        {slice.firstSetId !== slice.lastSetId && (
+                          <>
+                            <span className="opacity-60">&nbsp;through&nbsp;</span>
+                            <span className="font-mono font-semibold">{slice.lastSetId}</span>
+                          </>
+                        )}
+                        <span className="opacity-60">
+                          &nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})
+                        </span>
+                        {slice.endsInMiddleOfSet && (
+                          <span className="ml-2 text-amber-700 dark:text-amber-400 font-semibold">
+                            &#8629;&nbsp;mid-set stop
                           </span>
                         )}
-                      </span>
-                    ) : (
-                      <span className="opacity-60">
-                        &nbsp;({slice.sets.length} set{slice.sets.length !== 1 ? 's' : ''})
-                      </span>
-                    )}
+                      </div>
+
+                      <div
+                        data-testid={`final-target-${index + 1}`}
+                        className="rounded-lg border border-current/15 bg-white/75 px-3 py-2 shadow-sm dark:bg-gray-900/50"
+                      >
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] opacity-60">
+                          Final pull target
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                          <span className="rounded-md bg-slate-900 px-2 py-0.5 text-xs font-mono font-bold text-white dark:bg-slate-100 dark:text-slate-900">
+                            {finalSetId}
+                          </span>
+                          {finalCardNumber ? (
+                            <span className="text-sm font-mono font-semibold">
+                              {finalCardNumber}
+                            </span>
+                          ) : (
+                            <span className="text-xs opacity-60">Entire last set</span>
+                          )}
+                        </div>
+                        {finalCardName && (
+                          <div className="mt-1 text-sm font-semibold leading-5">
+                            {finalCardName}
+                          </div>
+                        )}
+                        {slice.splitEndCard &&
+                          slice.splitEndCard.quantityNeeded < slice.splitEndCard.quantityTotal && (
+                            <div className="mt-1 text-xs opacity-75">
+                              Pull {slice.splitEndCard.quantityNeeded} of{' '}
+                              {slice.splitEndCard.quantityTotal} copies from this card.
+                            </div>
+                          )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -195,23 +240,6 @@ export default function BatchCard({ batch, targetPerBatch }: Props) {
         })}
       </div>
 
-      {batch.setIds.length > 0 && (
-        <details className="px-5 py-2 text-xs">
-          <summary className="cursor-pointer opacity-60 hover:opacity-100 select-none">
-            Show all {batch.setIds.length} sets in this run
-          </summary>
-          <div className="mt-2 flex flex-wrap gap-1">
-            {batch.setIds.map((s) => (
-              <span
-                key={s}
-                className="bg-white/60 dark:bg-gray-800/60 border border-current/20 rounded px-1.5 py-0.5 font-mono"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </details>
-      )}
     </div>
   )
 }
